@@ -134,9 +134,11 @@ public class TerraTeleport extends Command {
         BlockPos h = ((ICubicWorld) world).findTopBlock(new BlockPos(proj[0], 8900, proj[1]), -450, 8900, ICubicWorld.SurfaceType.SOLID);
 
         CompletableFuture<Double> altFuture;
-        if (h != null){
+        if (!Double.isNaN(altitude)) {
+            altFuture = CompletableFuture.completedFuture(altitude);
+        } else if (h != null){
             altFuture = CompletableFuture.completedFuture((double) h.getY());
-        } else if (Double.isNaN(altitude)) {
+        } else {
             try {
                 altFuture = terrain.datasets
                         .<IScalarDataset>getCustom(EarthGeneratorPipelines.KEY_DATASET_HEIGHTS)
@@ -146,8 +148,6 @@ public class TerraTeleport extends Command {
                 sender.sendMessage(ChatUtil.titleAndCombine(TextFormatting.RED, TranslateUtil.translate(TerraConstants.MODID + ".error.numbers")));
                 return;
             }
-        } else {
-            altFuture = CompletableFuture.completedFuture(altitude);
         }
 
         if (receivers.isEmpty() && sender instanceof EntityPlayerMP) {
