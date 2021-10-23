@@ -131,22 +131,23 @@ public class TerraTeleport extends Command {
             return;
         }
 
-        BlockPos h = ((ICubicWorld) world).findTopBlock(new BlockPos(proj[0], 8900, proj[1]), -450, 8900, ICubicWorld.SurfaceType.SOLID);
-
         CompletableFuture<Double> altFuture;
         if (!Double.isNaN(altitude)) {
             altFuture = CompletableFuture.completedFuture(altitude);
-        } else if (h != null){
-            altFuture = CompletableFuture.completedFuture((double) h.getY());
         } else {
-            try {
-                altFuture = terrain.datasets
-                        .<IScalarDataset>getCustom(EarthGeneratorPipelines.KEY_DATASET_HEIGHTS)
-                        .getAsync(defaultCoords.getLng(), defaultCoords.getLat())
-                        .thenApply(a -> a + 1.0d);
-            } catch (OutOfProjectionBoundsException e) { //out of bounds, notify user
-                sender.sendMessage(ChatUtil.titleAndCombine(TextFormatting.RED, TranslateUtil.translate(TerraConstants.MODID + ".error.numbers")));
-                return;
+            BlockPos topBlock = ((ICubicWorld) world).findTopBlock(new BlockPos(proj[0], 8900, proj[1]), -450, 8900, ICubicWorld.SurfaceType.SOLID);
+            if (topBlock == null){
+                try {
+                    altFuture = terrain.datasets
+                            .<IScalarDataset>getCustom(EarthGeneratorPipelines.KEY_DATASET_HEIGHTS)
+                            .getAsync(defaultCoords.getLng(), defaultCoords.getLat())
+                            .thenApply(a -> a + 1.0d);
+                } catch (OutOfProjectionBoundsException e) { //out of bounds, notify user
+                    sender.sendMessage(ChatUtil.titleAndCombine(TextFormatting.RED, TranslateUtil.translate(TerraConstants.MODID + ".error.numbers")));
+                    return;
+                }
+            } else {
+                altFuture = CompletableFuture.completedFuture((double) topBlock.getY());
             }
         }
 
