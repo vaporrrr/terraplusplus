@@ -1,5 +1,6 @@
 package net.buildtheearth.terraplusplus.control;
 
+import io.github.opencubicchunks.cubicchunks.api.world.ICubicWorld;
 import io.github.opencubicchunks.cubicchunks.api.worldgen.ICubeGenerator;
 import io.github.opencubicchunks.cubicchunks.core.server.CubeProviderServer;
 import net.buildtheearth.terraplusplus.TerraConstants;
@@ -130,8 +131,12 @@ public class TerraTeleport extends Command {
             return;
         }
 
+        BlockPos h = ((ICubicWorld) world).findTopBlock(new BlockPos(proj[0], 8900, proj[1]), -450, 8900, ICubicWorld.SurfaceType.SOLID);
+
         CompletableFuture<Double> altFuture;
-        if (Double.isNaN(altitude)) {
+        if (h != null){
+            altFuture = CompletableFuture.completedFuture((double) h.getY());
+        } else if (Double.isNaN(altitude)) {
             try {
                 altFuture = terrain.datasets
                         .<IScalarDataset>getCustom(EarthGeneratorPipelines.KEY_DATASET_HEIGHTS)
